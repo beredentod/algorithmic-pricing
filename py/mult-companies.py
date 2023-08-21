@@ -11,7 +11,15 @@ MUC_char = pd.read_csv('../data/stations_characteristics_MUC_long.csv')
 MUC_data = pd.read_csv('../data/stations_prices_MUC_wide_10-2022.csv')
 
 
-# returns the list of all stations within the brand (returns 'id_data' of each station)
+
+'''
+Yields a times series of prices in Munich for multiple brands for one particular day 
+
+'''
+
+
+
+# returns the list of all individual stations within the brand (returns 'id_data' of each station)
 def getStationsbyCompany(comp_name):
 	stations = MUC_char[MUC_char['brand_id'] == comp_name]
 	ids = stations['id_data'].tolist()
@@ -66,7 +74,7 @@ def calculateAveragesOneBrand(ranges):
 	return avg
 
 
-# create labels the graph for each station as "street & no. "
+# create labels for the graph for each station as "street & no. "
 def createGraphLabelsForStations(ids):
 	names = []
 

@@ -1,3 +1,9 @@
+'''
+File: stations_colors.py
+
+- color of each brand for visualization
+'''
+
 def hex_to_rgb(hex_code):
     # Remove the '#' symbol if it's present
     if hex_code[0] == '#':

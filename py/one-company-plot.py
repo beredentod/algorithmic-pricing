@@ -1,3 +1,10 @@
+'''
+File: one-company-plot.py
+- yields a times series of prices in Munich for all stations
+	of one particular brand on one date, range: 6:00 until 22:55
+'''
+
+
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 import datetime
@@ -78,37 +85,49 @@ def createGraphLabelsForStations(ids):
 
 
 
-
+# input the date for which the 
+# format: two-digit number
+# range: 01 - 31 October 2022
 string = input("Date: ")
 date = string+'oct2022'
+
+# input the brand of the stations
 company = input("Company: ")
 
 
+# get all time series for each station within the brand
+# ranges - array with a time series for each station
+# ids - array with the ids of each station
 (ranges, ids) = getDataAllStationsOneBrand(company, date)
+
+
+# calculate average for each time stamp (5-min interval)
 avg_company = calculateAveragesOneBrand(ranges)
 
-print(ranges)
 
-
+# create labels each station on the graph, format: "street" + "no." 
+# names - the array with the labels for the graph
 names = createGraphLabelsForStations(ids)
+
+
+# add the average time series to the array of all time series
 ranges.append(avg_company)
-names.append("AVERAGE")
-
-print(names)
+names.append("AVERAGE") # add the label to the array with all labels
 
 
-
-
+# create the time series range for the graph: from 6:00 until 22:55 with 5-min intervals
 times = (pd.date_range("6:00", "22:55", freq="5min")).to_numpy()
 rangeX = times
 
 
+# create figure with fixed size (16, 9)
+fig = plt.figure(figsize=(16, 9))
+ax = fig.add_subplot(1, 1, 1) # just one graph (one subplot)
 
-fig, ax = plt.subplots()
 
+# add each time series to the graph
 for idx, rr in enumerate(ranges):
-	ax.plot_date(rangeX, rr, label=names[idx], marker='', linestyle='-')
-
+	ax.plot_date(rangeX, rr, fmt='-', label=names[idx])
 
 
 # setting the date format of the x-axis labels
@@ -118,7 +137,7 @@ ax.xaxis.set_major_formatter(myFmt)
 
 # setting the boundaries of the y-axis
 low = 1.7875
-high = 2.2215
+high = 2.2215 # max based on the data given
 ax.set_ylim(low, high)
 
 
@@ -129,14 +148,13 @@ ax.legend(loc="lower center", ncol=5)
 
 
 # maximize the preview window 
-manager = plt.get_current_fig_manager()
-manager.window.showMaximized()
+#manager = plt.get_current_fig_manager()
+#manager.window.showMaximized()
 
 plt.show()
 
 
 # saving the plot
-plt.rcParams["figure.figsize"] = [14, 8] # the size of the figure to be saved
-#fig.savefig('./samples/'+company+'_stations_MUC_'+date+'.png', dpi = 400)
-#print('Saved: ' + './samples/'+company+'_stations_MUC_'+date+'.png')
+fig.savefig('./samples/'+company+'_stations_MUC_'+date+'.png', dpi = 400)
+print('Saved: ' + './samples/'+company+'_stations_MUC_'+date+'.png')
 

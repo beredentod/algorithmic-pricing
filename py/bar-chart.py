@@ -1,3 +1,8 @@
+'''
+File: bar-chartt.py
+- yields a vertical bar chart with the number of stations within Munich for each brand
+'''
+
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 import datetime
@@ -12,7 +17,7 @@ MUC_char = pd.read_csv('../data/stations_characteristics_MUC_long.csv')
 MUC_data = pd.read_csv('../data/stations_prices_MUC_wide_10-2022.csv')
 
 
-#count items by category
+#count stations by brand
 counts = {}
 
 for item in MUC_char['brand_id']:
@@ -21,15 +26,12 @@ for item in MUC_char['brand_id']:
     else:
         counts[item] += 1
 
+
 # sort items by value in reversed order
 counts = dict(sorted(counts.items(), key=lambda item: item[1], reverse=True))
 
-
-#for category, count in counts.items():
-#    print(f"{category}: {count}")
-
-rangeX = list(counts.keys())
-rangeY = list(counts.values())
+rangeX = list(counts.keys()) # names of the brands
+rangeY = list(counts.values()) # values = number of stations per brand
 
 
 # move 'sonstige' to the back of the chart
@@ -48,10 +50,14 @@ if 'sonstige' in rangeX:
 plt.rcParams["figure.figsize"] = [14, 8]
 
 
-# generate the plot
-fig, ax = plt.subplots()
+# create the figure
+fig = plt.figure(figsize=(16, 9))
+ax = fig.add_subplot(1, 1, 1)
 
+
+# generate the plot
 bars = ax.bar(rangeX, rangeY)
+
 
 #rotate the label for each bar, as they overlap
 plt.xticks(rotation=45, ha='right')
@@ -63,14 +69,17 @@ for index, value in enumerate(rangeY):
 	bars[index].set_color(sc.hex_to_rgb(sc.colors_brands[rangeX[index]]))
 
 
+# set title of the graph
 ax.set_title('Gas stations in Munich by brand, May 2023')
 
-# make the plt winodow maximized
-manager = plt.get_current_fig_manager()
-manager.window.showMaximized()
 
+# make the plt winodow maximized
+#manager = plt.get_current_fig_manager()
+#manager.window.showMaximized()
 
 plt.show()
+
+# save file
 fig.savefig('../plots/barchart_stations_Munich', dpi = 150)
 print('Saved: ' + '../plots/barchart_stations_Munich.png')
 
