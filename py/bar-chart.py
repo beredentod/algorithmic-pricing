@@ -5,16 +5,22 @@ File: bar-chartt.py
 
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
-import datetime
+from datetime import datetime
 import numpy as np
 import pandas as pd
 
 import stations_colors as sc
 
+from load_char import df_char
+
 
 # import the stations data
-MUC_char = pd.read_csv('../data/stations_characteristics_MUC_long.csv')
-MUC_data = pd.read_csv('../data/stations_prices_MUC_wide_10-2022.csv')
+#MUC_char = pd.read_csv('../data/stations_characteristics_MUC_long.csv')
+#MUC_data = pd.read_csv('../data/stations_prices_MUC_wide_10-2022.csv')
+
+date = datetime(2022, 10, 1)
+
+MUC_char = df_char[df_char.apply(lambda row: row['first'] <= date <= row['last'], axis=1)]
 
 
 #count stations by brand
@@ -46,11 +52,8 @@ if 'sonstige' in rangeX:
 	rangeY.append(temp)
 
 
-# make the size of the saved figure larger
-plt.rcParams["figure.figsize"] = [14, 8]
 
-
-# create the figure
+# set the figure and axis
 fig = plt.figure(figsize=(16, 9))
 ax = fig.add_subplot(1, 1, 1)
 
@@ -70,7 +73,7 @@ for index, value in enumerate(rangeY):
 
 
 # set title of the graph
-ax.set_title('Gas stations in Munich by brand, May 2023')
+ax.set_title('Gas stations in Munich by brand, ' + str(date.date()))
 
 
 # make the plt winodow maximized
@@ -80,8 +83,9 @@ ax.set_title('Gas stations in Munich by brand, May 2023')
 plt.show()
 
 # save file
-fig.savefig('../plots/barchart_stations_Munich', dpi = 150)
-print('Saved: ' + '../plots/barchart_stations_Munich.png')
+savefile = '../plots/barchart_stations_Munich'
+fig.savefig(savefile, dpi = 150)
+print('Saved: ' + savefile)
 
 
 

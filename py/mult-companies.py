@@ -129,15 +129,16 @@ names.append('AVERAGE across all stations')
 times = (pd.date_range("6:00", "22:55", freq="5min")).to_numpy()
 rangeX = times
 
+#import pdb; pdb.set_trace()
 
 fig, ax = plt.subplots()
 
 
 for idx, rr in enumerate(avgs[:-1]):
-	ax.plot_date(rangeX, rr, label=names[idx], marker='', linestyle='-')	
+	ax.plot_date(rangeX, rr, label=names[idx], fmt='')	
 	
 
-ax.plot_date(rangeX, avgs[-1], label=names[-1], marker='', linestyle='-', zorder = 100, linewidth=3, color='black')
+ax.plot_date(rangeX, avgs[-1], label=names[-1], fmt='', zorder = 100, linewidth=3, color='black')
 
 
 # setting the date format of the x-axis labels
@@ -158,10 +159,10 @@ ax.legend(loc="lower center", ncol=5)
 
 
 # maximize the preview window 
-manager = plt.get_current_fig_manager()
-manager.window.showMaximized()
+#manager = plt.get_current_fig_manager()
+#manager.window.showMaximized()
 
-#plt.show()
+plt.show()
 
 
 # saving the plot

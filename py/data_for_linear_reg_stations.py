@@ -101,6 +101,8 @@ def lookupAddress(id_data):
 
 	return(street + " " + str(house_number) + ", " + str(post_code))
 
+
+
 # convert "22oct2022" to datetime type
 def convertDate(str_date):
 	format = "%d%b%Y"
