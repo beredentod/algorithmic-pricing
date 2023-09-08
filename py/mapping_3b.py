@@ -2,7 +2,7 @@ import geopandas as geopds
 import pandas as pd
 import matplotlib.pyplot as plt
 
-from compilation import df_stations
+from compilation_2 import df_stations
 
 path = './'
 

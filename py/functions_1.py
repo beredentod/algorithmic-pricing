@@ -1,30 +1,26 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 import pandas as pd
 import statsmodels.api as sm
 
-from load_char import df_char
-from load_prices import df_prices
-
+from load_char_0a import df_char
+from load_prices_0b import df_prices
 
 
 # select all stations' characteristics for one parameter on a particular date
 # date - datetime
-# par - string, e.g. 'brand_id'
+# param - string, e.g. 'brand_id'
 # arg - (respective type)
-def selectStationsbyCategory(date, par, arg):
+def selectStationsbyCategory(date, param, arg):
+
+	# select all stations for which data is available on given date
 	df_sel = df_char[df_char.apply(lambda row: row['first'] <= date <= row['last'], axis=1)]
 
-	if par == 'all':
+	# if the parameter is 'all' return all stations at this points
+	if param == 'all':
 		return df_sel
 
-	stations = df_sel[df_sel[par] == arg]
-	return stations
-
-
-####
-# TODO #
-# write a method that chooses whole month of data
-####
+	# if a parameter is entered, filter by the given parameter
+	return df_sel[df_sel[param] == arg]
 
 
 # select a price row for a particular station on a particular date
@@ -35,7 +31,43 @@ def selectPriceRowsSingleStation(date, id_data):
 
 # select all the price rows for all the selected stations in df on a particular date
 def selectPriceRows(date, df):
-	return df_prices.loc[(df_prices['id_data'].isin(df['id_data'].values)) & (df_prices['date'] == date)]
+	df_sel_prices = df_prices.loc[(df_prices['id_data'].isin(df['id_data'].values)) & (df_prices['date'] == date)]
+	df_sel_prices = df_sel_prices.dropna()
+	return df_sel_prices
+
+
+
+def selectStationsbyCategoryRange(start_date, end_date, param, arg):
+	#TODO
+	#assert(start_date <= end_date, "Start date is greater than end date.")
+
+	current_date = start_date
+
+	df_stations = selectStationsbyCategory(current_date, param, arg)
+	df_prices = selectPriceRows(current_date, df_stations)
+
+	while current_date < end_date:
+		current_date += timedelta(days=1)  # Increment the date by 1 day
+	    
+		df_stations_temp = selectStationsbyCategory(current_date, param, arg)
+		df_prices_temp = selectPriceRows(current_date, df_stations)	
+
+		
+		df_stations = pd.concat([df_stations, df_stations_temp], ignore_index=True)
+		df_stations = df_stations.drop_duplicates(subset=['id_data'])
+		df_prices = pd.concat([df_prices, df_prices_temp], ignore_index=True)
+	
+
+	return (df_stations, df_prices)    
+
+
+
+
+####
+# TODO #
+# write a method that chooses whole month of data
+####
+
 
 
 
@@ -129,9 +161,7 @@ def getDummies(df_stations, df_prices, category = 'group85'):
 
 
 
-def runLinearRegression(df_prices, category = 'group85'):
-	Y = df_prices['price']
-	X = df_prices.filter(like=category)
+def getLinearRegression(Y, X):
 
 	model = sm.OLS(Y, X)
 	results = model.fit()
@@ -181,13 +211,13 @@ def addCharacteristics(df_stations, df_reg_results):
 	df_reg_results['n'] = pd.Series([], dtype=object) 
 
 	# 2) is at least one station independent (not corporate brand)?
-	df_reg_results['D^indep>1'] = pd.Series([], dtype=object) 
+	df_reg_results['D_indep'] = pd.Series([], dtype=object) 
 
 	# 3) number of independent stations in cluster
-	df_reg_results['n^indep'] = pd.Series([], dtype=object)
+	df_reg_results['n_indep'] = pd.Series([], dtype=object)
 
 	# 4) share of independent stations in cluster
-	df_reg_results['share^indep'] = pd.Series([], dtype=object)
+	df_reg_results['share_indep'] = pd.Series([], dtype=object)
 
 	# 5) Herfindahl-Hirschman index for market concentration
 	df_reg_results['HHi'] = pd.Series([], dtype=object)
@@ -208,14 +238,14 @@ def addCharacteristics(df_stations, df_reg_results):
 
 		# get the number of independent stations
 		count_indep = len(df_indep)
-		df_reg_results.at[idx, 'n^indep'] = count_indep
+		df_reg_results.at[idx, 'n_indep'] = count_indep
 
 		# get the share of independent stations
-		df_reg_results.at[idx, 'D^indep>1'] = (count_indep > 0)
+		df_reg_results.at[idx, 'D_indep'] = (count_indep > 0)
 
 		# get the share of independent stations
 		share_indep = count_indep/count
-		df_reg_results.at[idx, 'share^indep'] = share_indep
+		df_reg_results.at[idx, 'share_indep'] = share_indep
 
 		# get Herfindahl-Hirschman index for cluster
 		df_reg_results.at[idx, 'HHi'] = calculateMarketConcentration(df_cluster)

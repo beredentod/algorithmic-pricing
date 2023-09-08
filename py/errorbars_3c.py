@@ -2,7 +2,7 @@ import statsmodels.api as sm
 import matplotlib.pyplot as plt
 import pandas as pd
 
-from compilation import df_reg_results
+from compilation_2 import df_reg_results
 
 
 coefficients = df_reg_results['Coefficient'] # the calculated coefficients 
