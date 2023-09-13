@@ -19,7 +19,7 @@ fig = plt.figure(figsize=(16, 9))
 ax = fig.add_subplot(1, 1, 1)
 
 rangeX = df_reg_results['HHi']
-rangeY = df_reg_results['Coefficient']
+rangeY = df_reg_results['Fixed effect']
 
 ax.scatter(rangeX, rangeY)
 

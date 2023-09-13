@@ -1,19 +1,27 @@
 from datetime import datetime, timedelta
 import pandas as pd
+import numpy as np
 import statsmodels.api as sm
 
 from load_char_0a import df_char
 from load_prices_0b import df_prices
 
 
+###
+#
+# Reading & compiling data
+#
+###
+
+
 # select all stations' characteristics for one parameter on a particular date
 # date - datetime
 # param - string, e.g. 'brand_id'
-# arg - (respective type)
+# arg - string or number (respective type), argument for parameter
 def selectStationsbyCategory(date, param, arg):
 
 	# select all stations for which data is available on given date
-	df_sel = df_char[df_char.apply(lambda row: row['first'] <= date <= row['last'], axis=1)]
+	df_sel = df_char.loc[(df_char['first'] <= date) & (df_char['last'] >= date)]
 
 	# if the parameter is 'all' return all stations at this points
 	if param == 'all':
@@ -23,55 +31,67 @@ def selectStationsbyCategory(date, param, arg):
 	return df_sel[df_sel[param] == arg]
 
 
-# select a price row for a particular station on a particular date
+# select a price row for a particular station (id_data) on a particular date
 def selectPriceRowsSingleStation(date, id_data):
 	return df_prices.loc[(df_prices['id_data'] == id_data) & (df_prices['date'] == date)]
 
 
+# select all price rows for all selected stations in df on a particular date
+def selectPriceRowsDate(date, df_stations_filtered):
+	df_sel_prices = df_prices.loc[(df_prices['id_data'].isin(df_stations_filtered['id_data'].values)) & (df_prices['date'] == date)]
+	df_sel_prices = df_sel_prices.dropna()
+	return df_sel_prices
 
-# select all the price rows for all the selected stations in df on a particular date
-def selectPriceRows(date, df):
-	df_sel_prices = df_prices.loc[(df_prices['id_data'].isin(df['id_data'].values)) & (df_prices['date'] == date)]
+
+# select all price rows within a date range
+def selectPriceAllRowsRange(start_date, end_date):
+	df_sel_prices = df_prices[(df_prices['date'] >= start_date) & (df_prices['date'] <= end_date)]
 	df_sel_prices = df_sel_prices.dropna()
 	return df_sel_prices
 
 
 
+# select all price rows for all selected stations in df within a date range
 def selectStationsbyCategoryRange(start_date, end_date, param, arg):
+
+	#TODO
+	#problably could be done quicker:
+	#1)take all price rows
+	#2)filter price rows by dates
+	#3)remove price rows that are not relevant
+
 	#TODO
 	#assert(start_date <= end_date, "Start date is greater than end date.")
 
 	current_date = start_date
 
 	df_stations = selectStationsbyCategory(current_date, param, arg)
-	df_prices = selectPriceRows(current_date, df_stations)
+	df_prices_filtered = selectPriceRowsDate(current_date, df_stations)
 
+	# iterate over dates until end_date achieved
 	while current_date < end_date:
 		current_date += timedelta(days=1)  # Increment the date by 1 day
 	    
 		df_stations_temp = selectStationsbyCategory(current_date, param, arg)
-		df_prices_temp = selectPriceRows(current_date, df_stations)	
+		df_prices_temp = selectPriceRowsDate(current_date, df_stations)	
 
-		
+		# for each date concat all stations and remove duplicates 
+		#TODO
+		#probably could be done quicker (a lot of redundant steps)
 		df_stations = pd.concat([df_stations, df_stations_temp], ignore_index=True)
 		df_stations = df_stations.drop_duplicates(subset=['id_data'])
-		df_prices = pd.concat([df_prices, df_prices_temp], ignore_index=True)
+
+		# for each date concat all price rows on top of each other
+		df_prices_filtered = pd.concat([df_prices_filtered, df_prices_temp], ignore_index=True)
 	
 
-	return (df_stations, df_prices)    
-
-
-
-
-####
-# TODO #
-# write a method that chooses whole month of data
-####
-
+	# return filtered stations & the concat'ed price rows
+	return (df_stations, df_prices_filtered)    
 
 
 
 # trim the dataframe to get just the time series of prices within a time interval
+# input: dataframe with price rows and columns 6:00, 6:05, ...
 def trimToTimeSeries(df, start_time = '6:00', end_time = '22:55'):
 	dt_start = datetime.strptime(start_time, '%H:%M').time()
 	dt_end = datetime.strptime(end_time, '%H:%M').time()
@@ -104,6 +124,12 @@ def trimToTimeSeries(df, start_time = '6:00', end_time = '22:55'):
 	return df.iloc[:, idx_start-1:idx_end]
 
 
+###
+#
+# Visuals / Utils
+#
+###
+
 
 # look up an address of a station based on its id_data
 def lookUpAddress(id_data, show_brand_id = False):
@@ -119,11 +145,18 @@ def lookUpAddress(id_data, show_brand_id = False):
 		return str(street) + ' ' + str(house_number) + ' [' + brand_id +']'
 
 
+###
+#
+# Data processing
+#
+###
 
-# create a dataframe table in which every column with hour timestamp is replaced by a row with the timestamp with the respective price
-def createTableForLinReg(df_prices):
+
+# create a dataframe table in which every column with hour timestamp is replaced 
+# by a row with the timestamp with the respective price
+def createTableForLinReg(df_prices_filtered):
 	# drop redundant columns
-	new_df = df_prices.drop(columns=['dow', 'weekend']) 
+	new_df = df_prices_filtered.drop(columns=['dow', 'weekend']) 
 
 	# make a separate row with price out of each hour timestamp 
 	melted_df = pd.melt(new_df, id_vars=['id_data', 'date'], var_name='hour', value_name='price')
@@ -143,10 +176,9 @@ def createTableForLinReg(df_prices):
 	return melted_df
 
 
-
-# get dummies for linear regression
-def getDummies(df_stations, df_prices, category = 'group85'):
-	merged_df = pd.merge(df_prices, df_stations[['id_data', category]], on='id_data', how='left')
+# get dummies for linear regression according to the needed category
+def getDummies(df_prices_filtered, category = 'group85'):
+	merged_df = pd.merge(df_prices_filtered, df_char[['id_data', category]], on='id_data', how='left')
 
 	# Convert 'groupXX' column to dummies
 	dummies = pd.get_dummies(merged_df[category], prefix=category)
@@ -160,9 +192,14 @@ def getDummies(df_stations, df_prices, category = 'group85'):
 	return(concat_df) 
 
 
+# generate linear regression for given datasets
+def getLinearRegression(Y, X, add_constant = False):
 
-def getLinearRegression(Y, X):
+	X = X.astype(float)
+	Y = Y.astype(float)
 
+	if add_constant:
+		X = sm.add_constant(X)
 	model = sm.OLS(Y, X)
 	results = model.fit()
 
@@ -180,8 +217,8 @@ def getLinearRegression(Y, X):
 
 
 
-def getStationsInCluster(df_stations, cluster_name, arg):
-	return (df_stations[df_stations[cluster_name] == arg])
+def getStationsInCluster(cluster_name, arg):
+	return (df_char[df_char[cluster_name] == arg])
 
 
 def calculateMarketConcentration(df_cluster):
@@ -205,29 +242,35 @@ def removeCorporations(df_cluster):
     return df_cluster[~df_cluster['brand_id'].isin(brands_to_remove)]
 
 
-def addCharacteristics(df_stations, df_reg_results):
+
+## TODO
+# Discuss with ML if it can be done quicker
+
+def addCharacteristics(df_reg_results):
 
 	# 1) number of stations in cluster
-	df_reg_results['n'] = pd.Series([], dtype=object) 
+	df_reg_results['n'] = np.nan
 
 	# 2) is at least one station independent (not corporate brand)?
-	df_reg_results['D_indep'] = pd.Series([], dtype=object) 
+	df_reg_results['D_indep'] = np.nan
 
 	# 3) number of independent stations in cluster
-	df_reg_results['n_indep'] = pd.Series([], dtype=object)
+	df_reg_results['n_indep'] = np.nan
 
 	# 4) share of independent stations in cluster
-	df_reg_results['share_indep'] = pd.Series([], dtype=object)
+	df_reg_results['share_indep'] = np.nan
 
 	# 5) Herfindahl-Hirschman index for market concentration
-	df_reg_results['HHi'] = pd.Series([], dtype=object)
+	df_reg_results['HHi'] = np.nan
 
+
+	df_reg_results = df_reg_results.rename(columns={'Coefficient': 'Fixed effect', 'Lower CI': 'FE lower CI', 'Upper CI': 'FE upper CI'})
 
 	for idx, row in df_reg_results.iterrows():
-		index_parts = idx.split('_')
+		(cluster, number) = idx.split('_')
 
 		# get the dataframe just for the iterated cluster
-		df_cluster = getStationsInCluster(df_stations, index_parts[0], int(index_parts[1]))
+		df_cluster = getStationsInCluster(cluster, int(number))
 
 		# get the number of stations in cluster
 		count = len(df_cluster)
