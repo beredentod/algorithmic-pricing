@@ -2,9 +2,11 @@ from datetime import datetime, timedelta
 import pandas as pd
 import numpy as np
 import statsmodels.api as sm
+from scipy.signal import find_peaks
 
 from load_char_0a import df_char
 from load_prices_0b import df_prices
+from load_linreg_prices_0c import df_linreg_prices
 
 
 ###
@@ -37,16 +39,49 @@ def selectPriceRowsSingleStation(date, id_data):
 
 
 # select all price rows for all selected stations in df on a particular date
-def selectPriceRowsDate(date, df_stations_filtered):
+def selectPriceRowsDate(date, df_stations_filtered, id_data_updated = False):
 	df_sel_prices = df_prices.loc[(df_prices['id_data'].isin(df_stations_filtered['id_data'].values)) & (df_prices['date'] == date)]
 	df_sel_prices = df_sel_prices.dropna()
+
+	if id_data_updated == True:
+		return utilSwapIdDataColumns(df_sel_prices)
+
 	return df_sel_prices
 
 
+def utilSwapIdDataColumns(df):
+	merged_df = df.merge(df_char[['first', 'last', 'id_data', 'id_data_updated']], on='id_data', how='left')
+	merged_df = merged_df[(merged_df['date'] >= merged_df['first']) & (merged_df['date'] <= merged_df['last'])]
+
+	merged_df.drop(columns=['id_data', 'first', 'last'], inplace=True)
+	#merged_df.drop(columns=['first', 'last'], inplace=True)
+
+	column_data = merged_df['id_data_updated']
+	merged_df.drop(columns='id_data_updated', inplace=True)
+	merged_df.insert(0, 'id_data_updated', column_data)
+
+	#merged_df = merged_df.merge(df_char[['id_data_updated', 'group80', 'group85', 'group90']], on='id_data_updated', how='left')
+
+	#pd.set_option('display.max_rows', None)
+
+	#print(merged_df.loc[merged_df['id_data_updated'] == '2aa5a805-38a3-450c-b92b-f08c78a5fad4-1'])
+	#print(merged_df)
+
+	#import pdb; pdb.set_trace()
+
+	#pd.reset_option('display.max_rows')
+
+	return merged_df
+
+
 # select all price rows within a date range
-def selectPriceAllRowsRange(start_date, end_date):
+def selectPriceAllRowsRange(start_date, end_date, id_data_updated = False):
 	df_sel_prices = df_prices[(df_prices['date'] >= start_date) & (df_prices['date'] <= end_date)]
 	df_sel_prices = df_sel_prices.dropna()
+
+	if id_data_updated == True:
+		return utilSwapIdDataColumns(df_sel_prices)
+
 	return df_sel_prices
 
 
@@ -118,7 +153,7 @@ def trimToTimeSeries(df, start_time = '6:00', end_time = '22:55'):
 			except TypeError:
 				pass
 
-	df.set_index('id_data', inplace=True)
+	df.set_index('id_data_updated', inplace=True)
 
 	# trim the dataframe
 	return df.iloc[:, idx_start-1:idx_end]
@@ -133,9 +168,12 @@ def trimToTimeSeries(df, start_time = '6:00', end_time = '22:55'):
 
 # look up an address of a station based on its id_data
 def lookUpAddress(id_data, show_brand_id = False):
-	street = df_char.loc[df_char[df_char['id_data'] == id_data].index[0]].at['street']
-	house_number = df_char.loc[df_char[df_char['id_data'] == id_data].index[0]].at['house_number']
-	brand_id = df_char.loc[df_char[df_char['id_data'] == id_data].index[0]].at['brand_id']
+
+	id_data_type = 'id_data_updated'
+
+	street = df_char.loc[df_char[df_char[id_data_type] == id_data].index[0]].at['street']
+	house_number = df_char.loc[df_char[df_char[id_data_type] == id_data].index[0]].at['house_number']
+	brand_id = df_char.loc[df_char[df_char[id_data_type] == id_data].index[0]].at['brand_id']
 
 	if show_brand_id == False:
 		# combine street and number into an address
@@ -159,32 +197,38 @@ def createTableForLinReg(df_prices_filtered):
 	new_df = df_prices_filtered.drop(columns=['dow', 'weekend']) 
 
 	# make a separate row with price out of each hour timestamp 
-	melted_df = pd.melt(new_df, id_vars=['id_data', 'date'], var_name='hour', value_name='price')
+	melted_df = pd.melt(new_df, id_vars=['id_data_updated', 'date'], var_name='hour', value_name='price')
 
 	# combine columns 'date' and 'hour' into one column 'timestamp'
 	melted_df['timestamp'] = melted_df.apply(lambda row: datetime.combine(row['date'], row['hour']), axis=1)
 
 	# drop the unnecessary columns
-	melted_df = melted_df[['id_data', 'timestamp', 'price']]
+	melted_df = melted_df[['id_data_updated', 'timestamp', 'price']]
 
 	# sort first by id_data, then by 'timestamp'
-	melted_df = melted_df.sort_values(by=['id_data', 'timestamp'])
+	melted_df = melted_df.sort_values(by=['id_data_updated', 'timestamp'])
 
 	# reset index after sorting
 	melted_df.reset_index(drop=True, inplace=True)
+
+	# add clusters for each price row
+	melted_df = melted_df.merge(df_char[['id_data_updated', 'group80', 'group85', 'group90']], on='id_data_updated', how='left')
 
 	return melted_df
 
 
 # get dummies for linear regression according to the needed category
-def getDummies(df_prices_filtered, category = 'group85'):
-	merged_df = pd.merge(df_prices_filtered, df_char[['id_data', category]], on='id_data', how='left')
+def getDummies(df_linreg, category = 'group85'):
+	#merged_df = pd.merge(df_prices_filtered, df_char[['id_data_updated', category]], on='id_data_updated', how='left')
+
+	#print(merged_df)
+	#print(merged_df.loc[(merged_df['timestamp'].dt.strftime('%H:%M') == '06:00') & (merged_df[category] == 2)])
 
 	# Convert 'groupXX' column to dummies
-	dummies = pd.get_dummies(merged_df[category], prefix=category)
+	dummies = pd.get_dummies(df_linreg[category], prefix=category)
 
 	# Concatenate the dummies with the original DataFrame
-	concat_df = pd.concat([merged_df, dummies], axis=1)
+	concat_df = pd.concat([df_linreg, dummies], axis=1)
 
 	# Drop the original category column if needed
 	concat_df.drop(columns=[category], inplace=True)
@@ -216,6 +260,18 @@ def getLinearRegression(Y, X, add_constant = False):
 	return df_results
 
 
+def calculateVarianceInCluster(df_linreg, cluster_type, cluster_id):
+	df = df_linreg[df_linreg[cluster_type] == cluster_id]
+
+	groups = df.groupby('timestamp')
+
+	group_means = groups['price'].transform('mean')
+
+	diffs = ((df['price'] - group_means) / group_means) * ((df['price'] - group_means) / group_means)
+
+	return (diffs.sum()) / len(groups)
+
+
 
 def getStationsInCluster(cluster_name, arg):
 	return (df_char[df_char[cluster_name] == arg])
@@ -242,9 +298,52 @@ def removeCorporations(df_cluster):
     return df_cluster[~df_cluster['brand_id'].isin(brands_to_remove)]
 
 
+# calculate the mean number of cycles per day for each cluster
+def calculateCycles(cluster_type, cluster_id):
+	df_linreg_prices['timestamp'] = pd.to_datetime(df_linreg_prices['timestamp'])
+	df_linreg_prices['date'] = df_linreg_prices['timestamp'].dt.date
 
-## TODO
-# Discuss with ML if it can be done quicker
+	df_cluster_prices = df_linreg_prices[df_linreg_prices[cluster_type] == cluster_id]
+
+	grouped = df_cluster_prices.groupby("date")
+
+	peaks_by_day = []
+
+	import matplotlib.pyplot as plt
+
+	for _, group in grouped:
+		timestamp_means = group.groupby('timestamp')['price'].mean()
+
+
+		# CORRECT THE PARAMETERS!!!
+
+		# Peak detection parameters
+		height = 1.7  # Adjust as needed
+		distance = 10  # Adjust as needed
+		threshold = None
+
+		peaks, _ = find_peaks(np.array(timestamp_means), height=height, distance=distance, threshold=threshold)
+
+		number_of_peaks = len(peaks)
+		peaks_by_day.append(number_of_peaks)
+
+		# Plot the time series
+		plt.plot(np.array(timestamp_means), label='Time Series')
+
+		# Mark the significant peaks
+		plt.plot(peaks, np.array(timestamp_means)[peaks], 'ro', label='Significant Peaks')
+
+		plt.legend()
+		plt.xlabel('Time')
+		plt.ylabel('Value')
+		plt.title('Time Series with Significant Local Maxima')
+		plt.show()
+
+	return(sum(peaks_by_day)/len(peaks_by_day))
+
+
+
+
 
 def addCharacteristics(df_reg_results):
 
@@ -263,13 +362,19 @@ def addCharacteristics(df_reg_results):
 	# 5) Herfindahl-Hirschman index for market concentration
 	df_reg_results['HHi'] = np.nan
 
+	# 6) Variance 
+	df_reg_results['var'] = np.nan
+
+	# 7) mean no. of cycles per day 
+	df_reg_results['mean_cycles'] = np.nan
+
 
 	df_reg_results = df_reg_results.rename(columns={'Coefficient': 'Fixed effect', 'Lower CI': 'FE lower CI', 'Upper CI': 'FE upper CI'})
 
 	for idx, row in df_reg_results.iterrows():
 		(cluster, number) = idx.split('_')
 
-		# get the dataframe just for the iterated cluster
+		# get the data frame with df_stations just for the iterated cluster
 		df_cluster = getStationsInCluster(cluster, int(number))
 
 		# get the number of stations in cluster
@@ -292,6 +397,12 @@ def addCharacteristics(df_reg_results):
 
 		# get Herfindahl-Hirschman index for cluster
 		df_reg_results.at[idx, 'HHi'] = calculateMarketConcentration(df_cluster)
+
+		# get variance
+		df_reg_results.at[idx, 'var'] = calculateVarianceInCluster(df_linreg_prices, cluster, int(number))
+
+		# get the mean number of cycles per day
+		df_reg_results.at[idx, 'mean_cycles'] = calculateCycles(cluster, int(number))
 	
 
 	return df_reg_results

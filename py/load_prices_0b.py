@@ -2,6 +2,13 @@ import pandas as pd
 from datetime import datetime
 import re
 
+# load the data file with prices
+df_prices = pd.read_csv('../data/stations_prices_MUC_wide_10-2022.csv')
+#df_prices = pd.read_csv('../data/stations_prices_all_wide_10-2022.csv')
+
+# change format of dates from string to datetime
+df_prices['date'] = pd.to_datetime(df_prices['date'], format='%d%b%Y')
+
 
 # convert "p_e5_6oclock_0min" to 6:00
 def convertTimestamp(string):
@@ -16,13 +23,6 @@ def convertTimestamp(string):
 		return time
 
 	return None  # Return None if the string format doesn't match
-
-
-# load the data file with prices
-df_prices = pd.read_csv('../data/stations_prices_MUC_wide_10-2022.csv')
-
-# change format of dates from string to datetime
-df_prices['date'] = pd.to_datetime(df_prices['date'], format='%d%b%Y')
 
 
 # change the column names for timestamps from "p_e5_6oclock_0min" to 6:00 (datetime type)

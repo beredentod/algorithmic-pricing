@@ -3,8 +3,8 @@ import matplotlib.dates as mdates
 import pandas as pd
 from datetime import datetime
 
-from compilation_2 import df_prices_ts as df_prices
-import compilation_2 as compilation
+from compilation_peaks_2b import df_prices_ts as df_prices
+import compilation_peaks_2b as compilation
 import functions_1 as fcs
 
 date = compilation.date

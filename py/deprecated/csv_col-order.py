@@ -21,8 +21,8 @@ desired_order = ['id_data', 'date', 'dow', 'weekend',
 'p_e5_22oclock_0min', 'p_e5_22oclock_5min', 'p_e5_22oclock_10min', 'p_e5_22oclock_15min', 'p_e5_22oclock_20min', 'p_e5_22oclock_25min', 'p_e5_22oclock_30min', 'p_e5_22oclock_35min', 'p_e5_22oclock_40min', 'p_e5_22oclock_45min', 'p_e5_22oclock_50min', 'p_e5_22oclock_55min']
 
 
-input_file = '../data/stations_prices_MUC_wide_10-2022.csv'
-output_file = '../data/stations_prices_MUC_wide_10-2022_new.csv'
+input_file = '../../data/stations_prices_all_wide_7-2022.csv'
+output_file = '../../data/stations_prices_all_wide_7-2022_new.csv'
 
 
 import csv
@@ -34,12 +34,12 @@ def get_column_names(csv_file):
 
     return header
 
-csv_file = '../data/stations_prices_MUC_wide_10-2022_new.csv' # Replace with the path to your CSV file
-column_names = get_column_names(csv_file)
-print("Column names:", column_names)
+#csv_file = '../../data/stations_prices_all_wide_10-2022.csv' # Replace with the path to your CSV file
+#column_names = get_column_names(csv_file)
+#print("Column names:", column_names)
 
 
-'''
+
 with open(input_file, "r") as infile, open(output_file, "w", newline="") as outfile:
     reader = csv.DictReader(infile)
     fieldnames = reader.fieldnames
@@ -59,4 +59,4 @@ with open(input_file, "r") as infile, open(output_file, "w", newline="") as outf
         writer.writerow(reordered_row)
 
 print(f"Columns reordered and saved in '{output_file}'.")
-'''
+
