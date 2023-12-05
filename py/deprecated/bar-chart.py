@@ -11,16 +11,9 @@ import pandas as pd
 
 import stations_colors as sc
 
-from load_char import df_char
 
+results = df_price_inc[df_price_inc['cycle_leader'] == 1].groupby('brand_id').size().sort_values(ascending=False)
 
-# import the stations data
-#MUC_char = pd.read_csv('../data/stations_characteristics_MUC_long.csv')
-#MUC_data = pd.read_csv('../data/stations_prices_MUC_wide_10-2022.csv')
-
-date = datetime(2022, 10, 1)
-
-MUC_char = df_char[df_char.apply(lambda row: row['first'] <= date <= row['last'], axis=1)]
 
 
 #count stations by brand

@@ -1,12 +1,13 @@
 from datetime import datetime, timedelta
+import pandas as pd
 
 import functions_1 as fcs
 from functions_1 import df_linreg_prices
 
 
-cluster = 'group90'
+cluster = 'group80'
 
-print(df_linreg_prices)
+#print(df_linreg_prices)
 
 #fcs.calculateCycles(cluster, 18)
 
@@ -18,7 +19,7 @@ print(df_linreg_prices)
 
 df_linreg_dummies = fcs.getDummies(df_linreg_prices, cluster)
 
-print(df_linreg_dummies)
+#print(df_linreg_dummies)
 
 
 
@@ -29,13 +30,13 @@ df_reg_results = fcs.addCharacteristics(df_reg_results)
 
 print(df_reg_results)
 
-#df_reg_results.to_csv(cluster+'_characteristics.csv')
+df_reg_results.to_csv(cluster+'_characteristics.csv')
 
 
 
 
 
-'''
+
 import statsmodels.api as sm
 Y = df_reg_results['Fixed effect'].astype(float)
 X = df_reg_results[['HHi']].astype(float)
@@ -46,8 +47,7 @@ model = sm.OLS(Y,X)
 results = model.fit()
 
 print(results.params)
-'''
-'''
+
 
 df_reg_results_HHi = fcs.getLinearRegression(df_reg_results['Fixed effect'], df_reg_results[['HHi']], True)
 df_reg_results_HHi = df_reg_results_HHi.drop('const')
@@ -74,5 +74,5 @@ df_reg_results_n = df_reg_results_n.drop('const')
 df_reg_results_char = pd.concat([df_reg_results_HHi, df_reg_results_share, df_reg_results_Nindep, df_reg_results_Dindep, df_reg_results_n], axis=0)
 
 print(df_reg_results_char)
-'''
+
 

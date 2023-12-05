@@ -7,6 +7,8 @@ from scipy.signal import find_peaks
 from load_char_0a import df_char
 from load_prices_0b import df_prices
 from load_linreg_prices_0c import df_linreg_prices
+from load_price_inc_0d import df_price_inc
+
 
 
 ###
@@ -298,6 +300,8 @@ def removeCorporations(df_cluster):
     return df_cluster[~df_cluster['brand_id'].isin(brands_to_remove)]
 
 
+
+# WRONG
 # calculate the mean number of cycles per day for each cluster
 def calculateCycles(cluster_type, cluster_id):
 	df_linreg_prices['timestamp'] = pd.to_datetime(df_linreg_prices['timestamp'])
@@ -400,9 +404,6 @@ def addCharacteristics(df_reg_results):
 
 		# get variance
 		df_reg_results.at[idx, 'var'] = calculateVarianceInCluster(df_linreg_prices, cluster, int(number))
-
-		# get the mean number of cycles per day
-		df_reg_results.at[idx, 'mean_cycles'] = calculateCycles(cluster, int(number))
 	
 
 	return df_reg_results
