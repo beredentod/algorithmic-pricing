@@ -8,6 +8,7 @@ from load_char_0a import df_char
 from load_prices_0b import df_prices
 from load_linreg_prices_0c import df_linreg_prices
 from load_price_inc_0d import df_price_inc
+from load_daily_station_linreg_0e import df_daily_station_linreg
 
 
 
@@ -346,36 +347,33 @@ def calculateCycles(cluster_type, cluster_id):
 	return(sum(peaks_by_day)/len(peaks_by_day))
 
 
-
-
-
-def addCharacteristics(df_reg_results):
+def addCharacteristics(df_cluster_char):
 
 	# 1) number of stations in cluster
-	df_reg_results['n'] = np.nan
+	df_cluster_char['n'] = np.nan
 
 	# 2) is at least one station independent (not corporate brand)?
-	df_reg_results['D_indep'] = np.nan
+	df_cluster_char['D_indep'] = np.nan
 
 	# 3) number of independent stations in cluster
-	df_reg_results['n_indep'] = np.nan
+	df_cluster_char['n_indep'] = np.nan
 
 	# 4) share of independent stations in cluster
-	df_reg_results['share_indep'] = np.nan
+	df_cluster_char['share_indep'] = np.nan
 
 	# 5) Herfindahl-Hirschman index for market concentration
-	df_reg_results['HHi'] = np.nan
+	df_cluster_char['HHi'] = np.nan
 
 	# 6) Variance 
-	df_reg_results['var'] = np.nan
+	#df_cluster_char['var'] = np.nan
 
 	# 7) mean no. of cycles per day 
-	df_reg_results['mean_cycles'] = np.nan
+	#df_cluster_char['mean_cycles'] = np.nan
 
 
-	df_reg_results = df_reg_results.rename(columns={'Coefficient': 'Fixed effect', 'Lower CI': 'FE lower CI', 'Upper CI': 'FE upper CI'})
+	df_cluster_char = df_cluster_char.rename(columns={'Coefficient': 'Fixed effect', 'Lower CI': 'FE lower CI', 'Upper CI': 'FE upper CI'})
 
-	for idx, row in df_reg_results.iterrows():
+	for idx, row in df_cluster_char.iterrows():
 		(cluster, number) = idx.split('_')
 
 		# get the data frame with df_stations just for the iterated cluster
@@ -383,27 +381,85 @@ def addCharacteristics(df_reg_results):
 
 		# get the number of stations in cluster
 		count = len(df_cluster)
-		df_reg_results.at[idx, 'n'] = count
+		df_cluster_char.at[idx, 'n'] = int(count)
 
 		# get independent stations in cluster
 		df_indep = removeCorporations(df_cluster)
 
 		# get the number of independent stations
 		count_indep = len(df_indep)
-		df_reg_results.at[idx, 'n_indep'] = count_indep
+		df_cluster_char.at[idx, 'n_indep'] = count_indep
 
 		# get the share of independent stations
-		df_reg_results.at[idx, 'D_indep'] = (count_indep > 0)
+		df_cluster_char.at[idx, 'D_indep'] = (count_indep > 0)
 
 		# get the share of independent stations
 		share_indep = count_indep/count
-		df_reg_results.at[idx, 'share_indep'] = share_indep
+		df_cluster_char.at[idx, 'share_indep'] = share_indep
 
 		# get Herfindahl-Hirschman index for cluster
-		df_reg_results.at[idx, 'HHi'] = calculateMarketConcentration(df_cluster)
+		df_cluster_char.at[idx, 'HHi'] = calculateMarketConcentration(df_cluster)
 
 		# get variance
-		df_reg_results.at[idx, 'var'] = calculateVarianceInCluster(df_linreg_prices, cluster, int(number))
-	
+		#df_cluster_char.at[idx, 'var'] = calculateVarianceInCluster(df_linreg_prices, cluster, int(number))
 
-	return df_reg_results
+
+		#df_cluster_char['n'] = df_cluster_char['n'].astype(int)
+		#df_cluster_char['n_indep'] = df_cluster_char['n_indep'].astype(int)
+
+	return df_cluster_char
+
+
+
+def getClusterCharacteristics(cluster_type):
+	cluster_size = df_char[cluster_type].value_counts().sort_index()
+
+	# 1) number of stations in cluster
+	df_cluster_char = pd.DataFrame({'n': cluster_size})
+
+	# 2) is at least one station independent (not corporate brand)?
+	df_cluster_char['D_indep'] = np.nan
+
+	# 3) number of independent stations in cluster
+	df_cluster_char['n_indep'] = np.nan
+
+	# 4) share of independent stations in cluster
+	df_cluster_char['share_indep'] = np.nan
+
+	# 5) Herfindahl-Hirschman index for market concentration
+	df_cluster_char['HHi'] = np.nan
+
+
+	for idx, row in df_cluster_char.iterrows():
+
+		# get the data frame with df_stations just for the iterated cluster
+		df_cluster = getStationsInCluster(cluster_type, idx)
+
+		# get the number of stations in cluster
+		count = df_cluster_char.at[idx, 'n']
+
+		# get independent stations in cluster
+		df_indep = removeCorporations(df_cluster)
+
+		# get the number of independent stations
+		count_indep = len(df_indep)
+		df_cluster_char.at[idx, 'n_indep'] = count_indep
+
+		# get the share of independent stations
+		df_cluster_char.at[idx, 'D_indep'] = (count_indep > 0)
+
+		# get the share of independent stations
+		share_indep = count_indep/count
+		df_cluster_char.at[idx, 'share_indep'] = share_indep
+
+		# get Herfindahl-Hirschman index for cluster
+		df_cluster_char.at[idx, 'HHi'] = calculateMarketConcentration(df_cluster)
+
+
+	# Renaming the index to match the format 'group85_1', 'group85_2', 'group85_3', ...
+	#df_cluster_char.index = ['group85_' + str(i) for i in df_cluster_char.index]
+	df_cluster_char = df_cluster_char.reset_index().rename(columns={'index': cluster_type})
+
+	df_cluster_char['n_indep'] = df_cluster_char['n_indep'].astype(int)
+
+	return df_cluster_char

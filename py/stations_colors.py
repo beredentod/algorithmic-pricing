@@ -27,6 +27,7 @@ colors_brands = {
 'omv': '#00457c', #blue
 'allguth': '#ed194c', #reddis
 'sonstige': '#d3d3d3', #light grey
+'other': '#d3d3d3', #light grey
 'total': '#fc0103', #red
 'avia': '#ed194c', #red
 'bavaria petrol': '#3773b3', #blue
@@ -39,4 +40,8 @@ colors_brands = {
 'mr wash': '#f04220', #red-orange
 'star': '#ed1c24', #red
 'bft': '#ee7100', #orange
+'raiffeisen': '#62af15', #green
+'other_integrated': '#964b00', #brown
+'non-integrated': '#d3d3d3', #light grey
+'aggregate': '#8f00ff' #violet
 }

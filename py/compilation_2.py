@@ -5,38 +5,47 @@ import functions_1 as fcs
 from functions_1 import df_linreg_prices
 
 
-cluster = 'group80'
+cluster_type = 'group85'
+
+df_cluster_char = fcs.getClusterCharacteristics(cluster_type)
+
+print(df_cluster_char)
+
+
+filename = cluster_type+'_all_characteristics.csv'
+df_cluster_char.to_csv(filename, index=False)
+print('Saved! ' + filename)
+
+
 
 #print(df_linreg_prices)
 
 #fcs.calculateCycles(cluster, 18)
 
-
-
-
-
-
-
+'''
 df_linreg_dummies = fcs.getDummies(df_linreg_prices, cluster)
 
 #print(df_linreg_dummies)
 
-
-
 df_reg_results = fcs.getLinearRegression(df_linreg_dummies['price'], df_linreg_dummies.filter(like=cluster))
 df_reg_results = fcs.addCharacteristics(df_reg_results)
 
+df_reg_results = df_reg_results.drop(columns = ['Fixed effect', 'FE lower CI', 'FE upper CI'])
+
+df_reg_results['n'] = df_reg_results['n'].astype(int)
+df_reg_results['n_indep'] = df_reg_results['n_indep'].astype(int)
+
 #df_reg_results = df_reg_results.loc[df_reg_results['HHi'] < 1]
 
-print(df_reg_results)
+print(df_reg_results)'''
 
-df_reg_results.to_csv(cluster+'_characteristics.csv')
-
-
+#df_reg_results.to_csv(cluster+'_all_characteristics.csv')
 
 
 
 
+
+'''
 import statsmodels.api as sm
 Y = df_reg_results['Fixed effect'].astype(float)
 X = df_reg_results[['HHi']].astype(float)
@@ -64,8 +73,8 @@ df_reg_results_Dindep = df_reg_results_Dindep.drop('const')
 df_reg_results_n = fcs.getLinearRegression(df_reg_results['Fixed effect'], df_reg_results[['n']], True)
 df_reg_results_n = df_reg_results_n.drop('const')
 
-#df_reg_results_HHi_n = fcs.getLinearRegression(df_reg_results['Fixed effect'], df_reg_results[['n', 'HHi']], True)
-#df_reg_results_HHi_n = df_reg_results_HHi_n.drop('const')
+df_reg_results_HHi_n = fcs.getLinearRegression(df_reg_results['Fixed effect'], df_reg_results[['n', 'HHi']], True)
+df_reg_results_HHi_n = df_reg_results_HHi_n.drop('const')
 
 
 
@@ -75,4 +84,4 @@ df_reg_results_char = pd.concat([df_reg_results_HHi, df_reg_results_share, df_re
 
 print(df_reg_results_char)
 
-
+'''
