@@ -26,14 +26,14 @@ df_linreg_prices['bool_cycle_begin'] = np.nan
 df_linreg_prices['cycle'] = np.nan
 
 
-df_filter = df_linreg_prices.loc[(df_linreg_prices['id_data_updated'] == arg) & (df_linreg_prices['date'] == single_date)]
+#df_linreg_prices = df_linreg_prices.loc[(df_linreg_prices['id_data_updated'] == arg) & (df_linreg_prices['date'] == single_date)]
 
 
-print(df_filter)
+#print(df_filter)
 
 
-selected_df = pd.DataFrame(columns=df_filter.columns)
-selected_rows = []
+#selected_df = pd.DataFrame(columns=df_filter.columns)
+#selected_rows = []
 
 
 '''
@@ -125,6 +125,7 @@ selected_df.reset_index(drop=True, inplace=True)
 print(selected_df)
 '''
 
+'''
 selected_rows = []
 
 grouped_by_station = df_linreg_prices.groupby('id_data_updated')
@@ -183,26 +184,26 @@ for station_idx, group in grouped_by_station:
 
 				if stack_empty == True:
 					stack_empty = False
-					curr.loc['change'] = curr['price'] - prev['price']
-					curr.loc['bool_cycle_begin'] = 1
-					curr.loc['cycle'] = cycle
+					df_linreg_prices.loc[curr.name, 'change'] = curr['price'] - prev['price']
+					df_linreg_prices.loc[curr.name, 'bool_cycle_begin'] = 1
+					df_linreg_prices.loc[curr.name, 'cycle'] = cycle
 					selected_rows.append(curr)
 					first_done = True
 
 				else:
 					#print('Increase: ' + str(curr['price']))
-					curr.loc['change'] = curr['price'] - prev['price']
-					curr.loc['bool_cycle_begin'] = 0
-					curr.loc['cycle'] = cycle
+					df_linreg_prices.loc[curr.name, 'change'] = curr['price'] - prev['price']
+					df_linreg_prices.loc[curr.name, 'bool_cycle_begin'] = 0
+					df_linreg_prices.loc[curr.name, 'cycle'] = cycle
 					selected_rows.append(curr)
 
 
 			elif curr['price'] < prev['price']:
 				stack_empty = True
 				if first_done == False:
-					first.loc['change'] = 0
-					first.loc['bool_cycle_begin'] = 1
-					first.loc['cycle'] = first_cycle
+					df_linreg_prices.loc[first.name, 'change'] = 0
+					df_linreg_prices.loc[first.name, 'bool_cycle_begin'] = 1
+					df_linreg_prices.loc[first.name, 'cycle'] = first_cycle
 					selected_rows.append(first)
 					first_done = True
 				#print('Decrease: ' + str(curr['price']))
@@ -226,10 +227,96 @@ selected_df['time'] = selected_df['timestamp'].dt.time
 selected_df = selected_df.drop('timestamp', axis=1)
 
 selected_df = selected_df[['id_data_updated', 'date', 'time', 'dow', 'brand_id', 'price', 'change', 'cycle', 'bool_cycle_begin', 'group80', 'group85', 'group90']]
+'''
+
+
+
+
+selected_rows = []
+time_intervals = [
+    pd.to_datetime('09:00').time(),
+    pd.to_datetime('12:00').time(),
+    pd.to_datetime('15:00').time(),
+    pd.to_datetime('17:00').time(),
+    pd.to_datetime('19:00').time(),
+    pd.to_datetime('22:00').time()
+]
+
+def get_cycle(curr_time):
+    for i, interval in enumerate(time_intervals, start=1):
+        if curr_time < interval:
+            return i
+    return 7  # If the time is greater than 22:00
+
+
+i = 0;
+n = df_linreg_prices['id_data_updated'].nunique()
+
+for station_idx, group in df_linreg_prices.groupby('id_data_updated'):
+    grouped_by_date = group.groupby('date')
+    
+    print(station_idx) 
+
+    for date, group2 in grouped_by_date:
+        first = group2.iloc[0]
+        first_time = first['timestamp'].time()
+        first_cycle = get_cycle(first_time)
+
+        stack_empty = True
+        first_done = False
+
+        for i in range(1, len(group2)):
+            prev = group2.iloc[i - 1]
+            curr = group2.iloc[i]
+            curr_time = curr['timestamp'].time()
+            cycle = get_cycle(curr_time)
+
+            if curr['price'] > prev['price']:
+                if stack_empty:
+                    stack_empty = False
+                    df_linreg_prices.loc[curr.name, 'change'] = curr['price'] - prev['price']
+                    df_linreg_prices.loc[curr.name, 'bool_cycle_begin'] = 1
+                    df_linreg_prices.loc[curr.name, 'cycle'] = cycle
+                    selected_rows.append(df_linreg_prices.loc[curr.name])
+                    first_done = True
+
+                else:
+                    df_linreg_prices.loc[curr.name, 'change'] = curr['price'] - prev['price']
+                    df_linreg_prices.loc[curr.name, 'bool_cycle_begin'] = 0
+                    df_linreg_prices.loc[curr.name, 'cycle'] = cycle
+                    selected_rows.append(df_linreg_prices.loc[curr.name])
+
+                    
+            elif curr['price'] < prev['price']:
+                stack_empty = True
+                if not first_done:
+                    df_linreg_prices.loc[first.name, 'change'] = 0
+                    df_linreg_prices.loc[first.name, 'bool_cycle_begin'] = 1
+                    df_linreg_prices.loc[first.name, 'cycle'] = first_cycle
+                    selected_rows.append(df_linreg_prices.loc[first.name])
+                    first_done = True
+
+
+
+selected_df = pd.DataFrame(selected_rows)
+selected_df['dow'] = selected_df['timestamp'].dt.day_name()
+
+selected_df.reset_index(drop=True, inplace=True)
+
+selected_df['brand_id'] = selected_df['id_data_updated'].map(df_char.set_index('id_data_updated')['brand_id'])
+selected_df['date'] = selected_df['timestamp'].dt.date
+selected_df['time'] = selected_df['timestamp'].dt.time
+
+selected_df['cycle'] = selected_df['cycle'].astype(int)
+selected_df['bool_cycle_begin'] = selected_df['bool_cycle_begin'].astype(int)
+
+selected_df = selected_df.drop(['timestamp', 'date'], axis=1)
+selected_df = selected_df[['id_data_updated', 'time', 'dow', 'brand_id', 'price', 'change', 'cycle', 'bool_cycle_begin', 'group80', 'group85', 'group90']]
+
 
 
 print(selected_df)
 
 
-selected_df.to_csv('price-increases_MUC_Oct22_with-corrections.csv', index=False)
+selected_df.to_csv('test2.csv', index=False)
 print('Saved!')

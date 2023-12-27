@@ -103,6 +103,6 @@ plt.show()
 
 
 # save figure to a file
-save_name = f'./samples/all-DE_Oct-Dec_2022__smaller-brands.png'
+save_name = f'./samples/all-DE_Oct-Dec_2022_smaller-brands.png'
 fig.savefig(save_name, dpi = 150)
 print('Saved: ' + save_name)

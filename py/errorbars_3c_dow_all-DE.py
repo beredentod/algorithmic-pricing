@@ -79,7 +79,7 @@ for brand, array in dic.items():
 
 # Set the labels and title
 #ax.set_ylabel('Regression parameters')
-ax.set_xlabel('Price in Euro')
+ax.set_xlabel('Price in Euro')l
 ax.set_title('Price level by brand, by day of the week')
 
 ax.legend(loc='upper right')

@@ -41,6 +41,8 @@ colors_brands = {
 'star': '#ed1c24', #red
 'bft': '#ee7100', #orange
 'raiffeisen': '#62af15', #green
+'westfalen': 'ffcc00', #yellow
+'classic': '#000000', #black
 'other_integrated': '#964b00', #brown
 'non-integrated': '#d3d3d3', #light grey
 'aggregate': '#8f00ff' #violet
