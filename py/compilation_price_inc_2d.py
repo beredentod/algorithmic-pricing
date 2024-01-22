@@ -5,6 +5,20 @@ import functions_1 as fcs
 from functions_1 import df_price_inc
 from functions_1 import df_char
 
+
+'''
+df_price_inc = df_price_inc.drop('brand_id', axis=1)
+
+df_char_fil = df_char[['id_data_updated', 'brand_id']]
+
+result_df = pd.merge(df_price_inc, df_char_fil, on='id_data_updated', how='left')
+
+result_df = result_df[['id_data_updated', 'date', 'time', 'dow', 'brand_id', 'price', 'change', 'cycle',
+       'bool_cycle_begin', 'group80', 'group85', 'group90']]
+'''
+
+
+
 '''
 print(df_price_inc)
 
@@ -20,6 +34,7 @@ print(df_price_inc)
 
 df_price_inc.to_csv('../data/price-increases_all-DE_12-2022_price-leaders.csv')
 print('Saved!')'''
+
 
 df_price_inc['cycle_leader80'] = 0
 df_price_inc['mult_leader80'] = 0
@@ -104,8 +119,11 @@ print(df_price_inc)
 #print((filtered[filtered['cycle_leader'] == 1].groupby('brand_id').size()).sort_values(ascending=False))
 
 
-df_price_inc.to_csv('../data/price-increases_all-DE_11-2022_price-leaders.csv', index=False)
+
+df_price_inc.to_csv('../data/price-increases_all-DE_12-2022_price-leaders.csv', index=False)
 print('Saved!')
+
+
 
 
 

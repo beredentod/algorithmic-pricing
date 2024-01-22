@@ -9,6 +9,8 @@ path = './'
 # Relevante Datei
 file = 'dlm250.utm32s.shape.ebenen/dlm250_ebenen/ver01_l.shp'
 
+print(df_stations)
+
 # Read in and filter (see documentation)
 gdf_roads = geopds.read_file(path + file)
 
@@ -33,8 +35,8 @@ for name, group in grouped:
 gdf_roads.to_crs(epsg=4326).plot(ax=ax,color='grey') # Roads layer
 
 
-for idx, row in df_stations.iterrows():
-	ax.annotate(row[cluster], xy=(row['longitude']+0.002,row['latitude']+0.002), color='black', horizontalalignment="center")
+#for idx, row in df_stations.iterrows():
+#	ax.annotate(row[cluster], xy=(row['longitude']+0.002,row['latitude']+0.002), color='black', horizontalalignment="center")
 
 
 
@@ -42,12 +44,12 @@ for idx, row in df_stations.iterrows():
 ax.set_xlim([11.39, 11.73])
 ax.set_ylim([48.06, 48.225])
 
-#verdistrasse
-#ax.set_xlim([11.44, 11.48])
-#x.set_ylim([48.16, 48.17])
+# whole Germany
+#ax.set_xlim([5.51, 15.21])
+#ax.set_ylim([55.04, 47.15])
 
 
-ax.set_title('Gas stations in Munich, cluster: ' + cluster)
+ax.set_title('Fuel stations in Munich, cluster: ' + cluster)
 ax.set_ylabel('Latitude')
 ax.set_xlabel('Longitude')
 ax.legend(loc="lower right", ncol=4)

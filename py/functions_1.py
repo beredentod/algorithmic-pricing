@@ -177,13 +177,14 @@ def lookUpAddress(id_data, show_brand_id = False):
 	street = df_char.loc[df_char[df_char[id_data_type] == id_data].index[0]].at['street']
 	house_number = df_char.loc[df_char[df_char[id_data_type] == id_data].index[0]].at['house_number']
 	brand_id = df_char.loc[df_char[df_char[id_data_type] == id_data].index[0]].at['brand_id']
+	post_code = df_char.loc[df_char[df_char[id_data_type] == id_data].index[0]].at['post_code']
 
 	if show_brand_id == False:
 		# combine street and number into an address
-		return str(street) + ' ' + str(house_number)
+		return(f'{street} {house_number}, {post_code}')
 	else:
 		# combine street and number into an address + add the brand
-		return str(street) + ' ' + str(house_number) + ' [' + brand_id +']'
+		return(f'{street} {house_number}, {post_code}, [{brand_id}]')
 
 
 ###
