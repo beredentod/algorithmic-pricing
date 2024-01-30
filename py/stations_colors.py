@@ -44,6 +44,7 @@ colors_brands = {
 'westfalen': 'ffcc00', #yellow
 'classic': '#000000', #black
 'team': '#ec6708', #orange
+'q1': '#db193a', #red
 'other_integrated': '#964b00', #brown
 'non-integrated': '#d3d3d3', #light grey
 'aggregate': '#8f00ff' #violet

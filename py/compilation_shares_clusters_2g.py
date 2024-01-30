@@ -32,14 +32,19 @@ brands = ['aral', 'shell', 'esso', 'total', 'jet', 'agip', 'avia', 'bft', 'star'
 
 # create new columns
 df_shares['total_num_stations'] = np.nan
-df_shares['total_num_price_inc'] = np.nan
+df_shares['total_num_first_movers'] = np.nan
 
 for i in brands:
-	df_shares['share_stations_'+i] = np.nan
-	df_shares['share_price_inc_'+i] = np.nan
+    df_shares['share_stations_'+i] = np.nan
+    df_shares['share_first_movers_'+i] = np.nan
+    df_shares['share_diff_'+i] = np.nan
 
 df_shares['share_stations_other'] = np.nan
-df_shares['share_price_inc_other'] = np.nan
+df_shares['share_first_movers_other'] = np.nan
+df_shares['share_diff_other'] = np.nan
+
+
+clusters = [162, 194, 384, 403, 1433, 1832, 2047, 2183, 2682, 3018]
 
 
 # for each cluster calculate the shares
@@ -48,26 +53,41 @@ for index, row in df_shares.iterrows():
     # rows are price increases that involve just the iterated cluster
     iter_cluster = df_price_inc[df_price_inc[cluster] == row[cluster]]
 
-    total_inc = len(iter_cluster) # take the total number of increases with this cluster
+    iter_cluster_leaders = iter_cluster[iter_cluster['cycle_leader85'] == 1]
+
+    total_fm = len(iter_cluster_leaders) # take the total number increases in cluster which are first movers
     total_stat = iter_cluster['id_data_updated'].nunique() # take the number of unique stations
 
-    df_shares.at[index, 'total_num_price_inc'] = total_inc
+    df_shares.at[index, 'total_num_first_movers'] = total_fm
     df_shares.at[index, 'total_num_stations'] = total_stat
 
     # for each relevant brand: select a subset of increases with just this brand 
     for i in brands:
-        brand_stations = iter_cluster[iter_cluster['brand_id'] == i]
-        df_shares.at[index, 'share_stations_'+i] = brand_stations['id_data_updated'].nunique()/total_stat
-        df_shares.at[index, 'share_price_inc_'+i] = len(brand_stations)/total_inc
+        brand_inc = iter_cluster[iter_cluster['brand_id'] == i]
+        brand_stat = brand_inc['id_data_updated'].nunique()
+        brand_fm = brand_inc[brand_inc['cycle_leader85'] == 1]
+
+        df_shares.at[index, 'share_stations_'+i] = brand_stat/total_stat
+        df_shares.at[index, 'share_first_movers_'+i] = len(brand_fm)/total_fm
        
-    other_stations = iter_cluster[~iter_cluster['brand_id'].isin(brands)]
-    df_shares.at[index, 'share_stations_other'] = other_stations['id_data_updated'].nunique()/total_stat
-    df_shares.at[index, 'share_price_inc_other'] = len(other_stations)/total_inc
+
+    other_station_inc = iter_cluster[~iter_cluster['brand_id'].isin(brands)]
+    other_stat = other_station_inc['id_data_updated'].nunique()
+    other_fm = other_station_inc[other_station_inc['cycle_leader85'] == 1]
+
+    df_shares.at[index, 'share_stations_other'] = other_stat/total_stat
+    df_shares.at[index, 'share_first_movers_other'] = len(other_fm)/total_fm
 
 
 df_shares['total_num_stations'] = df_shares['total_num_stations'].astype(int)
-df_shares['total_num_price_inc'] = df_shares['total_num_price_inc'].astype(int)
+df_shares['total_num_first_movers'] = df_shares['total_num_first_movers'].astype(int)
 
+for i in brands:
+    df_shares['share_diff_'+i] = df_shares['share_first_movers_'+i] - df_shares['share_stations_'+i]
+
+df_shares['share_diff_other'] = df_shares['share_first_movers_other'] - df_shares['share_stations_other']
+
+pd.set_option('display.max_rows', None)
 print(df_shares)
 
-df_shares.to_csv('../data/share_price_inc_MUC_'+cluster+'.csv', index=False)
+df_shares.to_csv('../data/share_first_movers_all-DE_'+cluster+'.csv', index=False)

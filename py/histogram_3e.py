@@ -20,7 +20,7 @@ from functions_1 import df_char
 #brand = sys.argv[1]
 
 
-brand = 'raiffeisen'
+brand = 'aral'
 
 #day = datetime(2022, 10, 1).date()
 #print(day)
@@ -30,6 +30,9 @@ df_price_inc.set_index('time', drop=False, inplace=True)
 
 
 df_price_inc = df_price_inc[(df_price_inc['brand_id'] == brand)] #filter by brand
+
+#id_station = '60c3a07c-2ebe-4073-adae-a667e22fd4c8'
+#df_price_inc = df_price_inc[(df_price_inc['id_data_updated'] == id_station)]
 
 
 #df_price_inc = df_price_inc.loc[(df_price_inc['date'] == day)]

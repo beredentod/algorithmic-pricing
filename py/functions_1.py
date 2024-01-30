@@ -9,6 +9,7 @@ from load_prices_0b import df_prices
 from load_linreg_prices_0c import df_linreg_prices
 from load_price_inc_0d import df_price_inc
 from load_daily_station_linreg_0e import df_daily_station_linreg
+from load_cluster_first_movers_share_0f import df_share_first_movers
 
 
 
@@ -418,20 +419,27 @@ def getClusterCharacteristics(cluster_type):
 	# 1) number of stations in cluster
 	df_cluster_char = pd.DataFrame({'n': cluster_size})
 
-	# 2) is at least one station independent (not corporate brand)?
+	# 2) Fixed effect (mean)
+	df_cluster_char['Fixed effect'] = np.nan
+
+	# 3) is at least one station independent (not corporate brand)?
 	df_cluster_char['D_indep'] = np.nan
 
-	# 3) number of independent stations in cluster
+	# 4) number of independent stations in cluster
 	df_cluster_char['n_indep'] = np.nan
 
-	# 4) share of independent stations in cluster
+	# 5) share of independent stations in cluster
 	df_cluster_char['share_indep'] = np.nan
 
-	# 5) Herfindahl-Hirschman index for market concentration
+	# 6) Herfindahl-Hirschman index for market concentration
 	df_cluster_char['HHi'] = np.nan
 
 
 	for idx, row in df_cluster_char.iterrows():
+
+		# get the fixxed effect
+		mean = df_daily_station_linreg[df_daily_station_linreg[cluster_type] == idx]['price_mean'].mean()
+		df_cluster_char.at[idx, 'Fixed effect'] = mean
 
 		# get the data frame with df_stations just for the iterated cluster
 		df_cluster = getStationsInCluster(cluster_type, idx)

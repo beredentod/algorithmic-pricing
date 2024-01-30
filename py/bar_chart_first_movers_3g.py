@@ -21,10 +21,12 @@ df_price_inc['time'] = pd.to_datetime(df_price_inc['time'], format='%H:%M:%S')
 df_price_inc['time'] = df_price_inc['time'].dt.time
 
 
-#df_price_inc = df_price_inc[df_price_inc['mult_leader'+str(cluster)] == 0] #remove mult leaders
+unselect_clusters = df_price_inc.loc[(df_price_inc['brand_id'] == 'aral') | (df_price_inc['brand_id'] == 'shell'), 'group' + str(cluster)].unique()
+df_price_inc = df_price_inc[~df_price_inc['group' + str(cluster)].isin(unselect_clusters)]
 
+df_price_inc = df_price_inc[df_price_inc['mult_leader'+str(cluster)] == 0] #remove mult leaders
 
-#print(df_price_inc['time'].unique())
+# remove price increases at 6:00 and at 22:00
 #df_price_inc = df_price_inc[(df_price_inc['time']>= pd.to_datetime('09:00').time()) & (df_price_inc['time'] < pd.to_datetime('22:00').time())]
 
 
@@ -56,7 +58,7 @@ for index, value in enumerate(rangeY):
 
 
 # set title of the graph
-ax.set_title('Germany: First movers per day per cluster (group '+str(cluster)+') per cycle, WITH simultaneous movers, Oct 2022')
+ax.set_title('Germany: First movers per day per cluster (group '+str(cluster)+') per cycle, no clusters with aral or shell, NO simultaneous movers, Oct 2022')
 #ax.set_title('First mover per day per cluster (group '+str(cluster)+') per cycle, just between 9:00 and 21:55, no multiple leaders, Munich Oct 2022')
 #ax.set_title('First mover per day per cluster (group '+str(cluster)+') per cycle, filtered out: cluters: '+str(exclude_sel_clusters)+', just between 9:00 and 21:55, no multiple leaders, Munich Oct 2022')
 
@@ -64,6 +66,6 @@ ax.set_title('Germany: First movers per day per cluster (group '+str(cluster)+')
 plt.tight_layout()
 
 # save file
-savefile = './samples/barchart_first_movers_all_10-2022_group'+str(cluster)+'_with-mult-leaders'+'.png'
+savefile = './samples/barchart_first_movers_all_10-2022_group'+str(cluster)+'_no-aral-no-shell_no-mult-leaders'+'.png'
 fig.savefig(savefile, dpi = 150)
 print('Saved: ' + savefile)
