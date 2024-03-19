@@ -5,6 +5,8 @@ import pandas as pd
 
 import stations_colors as sc
 
+plt.rcParams.update({'font.size': 18})
+
 import functions_1 as fcs
 from functions_1 import df_share_first_movers
 
@@ -51,10 +53,10 @@ ax.yaxis.set_major_formatter(mtick.PercentFormatter(1))
 # set title of the graph
 #ax.set_title('Germany: First movers per day per cluster (group '+str(cluster)+') per cycle, no clusters with aral or shell, NO simultaneous movers, Oct 2022')
 
-plt.show()
+#plt.show()
 plt.tight_layout()
 
 # save file
-#savefile = './samples/barchart_first_movers_all_10-2022_group'+str(cluster)+'_no-aral-no-shell_no-mult-leaders'+'.png'
-#fig.savefig(savefile, dpi = 150)
-#print('Saved: ' + savefile)
+savefile = './samples/barchart_first_movers_share_group.png'
+fig.savefig(savefile, dpi = 150)
+print('Saved: ' + savefile)

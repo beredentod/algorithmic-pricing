@@ -9,12 +9,17 @@ import stations_colors as sc
 import functions_1 as fcs
 from functions_1 import df_char
 
+plt.rcParams.update({'font.size': 18})
+
+
+df_char = df_char.loc[(df_char['first'] <= datetime(2022, 10, 1)) & (df_char['last'] >= datetime(2022, 10, 31))]
 
 n = len(df_char)
+print(n)
 
 grouped = df_char.groupby('brand_id').size().sort_values(ascending=False)
 
-#grouped = (grouped / n).round(2) * 100
+grouped = (grouped / n).round(2) * 100 # market share
 
 big_oil = ['aral', 'shell', 'esso', 'total', 'jet']
 smaller_integrated = ['agip', 'hem', 'omv', 'star', 'avia', 'bft']
@@ -57,10 +62,10 @@ for index, value in enumerate(rangeY):
 
 
 # set title of the graph
-ax.set_title('German pterol stations by brand')
+ax.set_title('German petrol stations by brand, Oct 2022')
 
-
-plt.show()
+plt.tight_layout()
+#plt.show()
 
 
 # save file

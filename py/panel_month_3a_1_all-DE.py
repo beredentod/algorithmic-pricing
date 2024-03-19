@@ -118,6 +118,7 @@ lgd = ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05),
           fancybox=True, shadow=True, ncol=6)
 
 
+
 # display the plot
 #plt.show()
 plt.tight_layout()

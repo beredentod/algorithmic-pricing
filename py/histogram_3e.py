@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 import matplotlib.ticker as mtick
+plt.rcParams.update({'font.size': 18})
 import matplotlib
 import pandas as pd
 import datetime
@@ -31,8 +32,8 @@ df_price_inc.set_index('time', drop=False, inplace=True)
 
 df_price_inc = df_price_inc[(df_price_inc['brand_id'] == brand)] #filter by brand
 
-#id_station = '60c3a07c-2ebe-4073-adae-a667e22fd4c8'
-#df_price_inc = df_price_inc[(df_price_inc['id_data_updated'] == id_station)]
+id_station = '60c3a07c-2ebe-4073-adae-a667e22fd4c8'
+df_price_inc = df_price_inc[(df_price_inc['id_data_updated'] == id_station)]
 
 
 #df_price_inc = df_price_inc.loc[(df_price_inc['date'] == day)]
@@ -93,7 +94,7 @@ ax.set_ylabel('Share')
 ax.grid(zorder=0)
 
 # Set x-axis ticks at 1-hour intervals
-hourly_ticks = pd.date_range(start=df_price_inc['time'].min().replace(minute=0), end=df_price_inc['time'].max().replace(minute=0), freq='1H')
+hourly_ticks = pd.date_range(start=df_price_inc['time'].min().replace(minute=0), end=df_price_inc['time'].max().replace(minute=0), freq='2H')
 hourly_ticks = hourly_ticks.strftime('%H:%M').tolist()
 
 ax.set_xticks([occurrences.index.get_loc(t) for t in hourly_ticks])

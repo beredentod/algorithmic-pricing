@@ -87,6 +87,8 @@ box = ax.get_position()
 ax.set_position([box.x0, box.y0 + box.height * 0.1,
                  box.width, box.height * 0.9])
 
+ax.margins(y=0)
+
 # Put a legend below current axis
 lgd = ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.1),
           fancybox=True, shadow=True, ncol=6)
@@ -95,11 +97,11 @@ ax.axis(xmin=-1.2,xmax=1.2)
 plt.axvline(0, color='black')
 
 # Display the plot
-#plt.show()
+plt.show()
 plt.tight_layout()
 
 
 save_name = f'./samples/dev-mean_all-DE_dow.png'
-fig.savefig(save_name, dpi = 150, bbox_extra_artists=(lgd,), bbox_inches='tight')
-print('Saved: ' + save_name)
+#fig.savefig(save_name, dpi = 150, bbox_extra_artists=(lgd,), bbox_inches='tight')
+#print('Saved: ' + save_name)
 

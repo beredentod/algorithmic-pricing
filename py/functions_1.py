@@ -158,6 +158,7 @@ def trimToTimeSeries(df, start_time = '6:00', end_time = '22:55'):
 				pass
 
 	df.set_index('id_data_updated', inplace=True)
+	#df.set_index('id_data', inplace=True)
 
 	# trim the dataframe
 	return df.iloc[:, idx_start-1:idx_end]

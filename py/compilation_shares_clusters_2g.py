@@ -90,4 +90,4 @@ df_shares['share_diff_other'] = df_shares['share_first_movers_other'] - df_share
 pd.set_option('display.max_rows', None)
 print(df_shares)
 
-df_shares.to_csv('../data/share_first_movers_all-DE_'+cluster+'.csv', index=False)
+#df_shares.to_csv('../data/share_first_movers_all-DE_'+cluster+'.csv', index=False)
