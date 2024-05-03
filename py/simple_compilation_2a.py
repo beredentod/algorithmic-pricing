@@ -24,6 +24,5 @@ df_prices = fcs.selectPriceAllRowsRange(start_date, end_date, True)
 print(df_prices)
 
 
-
 # create a time series
 #df_prices_ts = fcs.trimToTimeSeries(df_prices)

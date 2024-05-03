@@ -1,5 +1,11 @@
+'''
+File: util_distance_duration_02.py
+
+- create control variables for the stations regarding the distance in min to the next station
+'''
+
 import pandas as pd
-from load_char_0a import df_char
+from load_data_0 import df_char
 
 df_dist = pd.read_csv('../data/distance_duration_10min.csv')
 
@@ -30,5 +36,5 @@ df_char = pd.merge(df_char, result_df, on='location_id', how='inner')
 
 print(df_char)
 
-df_char.to_csv('../data/stations_characteristics_MUC_long.csv', index=False)
-print('Saved!')
+#df_char.to_csv('../data/stations_characteristics_MUC_long.csv', index=False)
+#print('Saved!')

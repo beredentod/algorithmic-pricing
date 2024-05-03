@@ -19,7 +19,8 @@ print(n)
 
 grouped = df_char.groupby('brand_id').size().sort_values(ascending=False)
 
-grouped = (grouped / n).round(2) * 100 # market share
+#grouped = (grouped / n).round(2) * 100 # market share
+grouped = (grouped / n) * 100 # market share
 
 big_oil = ['aral', 'shell', 'esso', 'total', 'jet']
 smaller_integrated = ['agip', 'hem', 'omv', 'star', 'avia', 'bft']
@@ -38,10 +39,10 @@ grouped_with_other.loc['other'] = other_category_sum
 
 grouped = grouped_with_other
 
+grouped = grouped.round(1)
 
 rangeX = grouped.index # names of the brands
 rangeY = grouped.values # values = number of stations per brand
-
 
 # set the figure and axis
 fig = plt.figure(figsize=(16, 9))

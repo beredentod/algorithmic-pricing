@@ -4,12 +4,12 @@ import numpy as np
 import statsmodels.api as sm
 from scipy.signal import find_peaks
 
-from load_char_0a import df_char
-from load_prices_0b import df_prices
-from load_linreg_prices_0c import df_linreg_prices
-from load_price_inc_0d import df_price_inc
-from load_daily_station_linreg_0e import df_daily_station_linreg
-from load_cluster_first_movers_share_0f import df_share_first_movers
+from load_data_0 import df_char
+from load_data_0 import df_prices
+from load_data_0 import df_linreg_prices
+from load_data_0 import df_price_inc
+from load_data_0 import df_daily_station_linreg
+from load_data_0 import df_share_first_movers
 
 
 
